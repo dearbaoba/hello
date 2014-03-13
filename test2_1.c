@@ -67,8 +67,8 @@ int AKnew(int b, int c)
                     else
                         if(rtn != a)
                             return NOT_KNEW;
-            else
-                return NOT_KNEW;
+                else
+                    return NOT_KNEW;
 
     return rtn;
 }
