@@ -22,7 +22,7 @@ main()
         {
             tmaxN = totle;
             tmaxP = i;
-			if (tmaxN-tminN>=maxSum)
+            if (tmaxN-tminN>=maxSum)
             {
                 maxSum = tmaxN-tminN;
                 maxP = tmaxP;
