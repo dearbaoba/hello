@@ -22,7 +22,7 @@ int power(int a, int b);
 
 main()
 {
-	int r = expr("2*(1+2^2*(1+1))-3/3");
+	int r = expr("2*(1+2^0*(1+1))-3/3");
 
 	printf("result=%d\n", r);
 }
@@ -141,7 +141,7 @@ int isRightBrckt(const char *p)
 
 int power(int a, int b)
 {
-	int rtn = a;
-	while(b-- > 1) rtn *= a;
+	int rtn = 1;
+	while(b-- > 0) rtn *= a;
 	return rtn;
 }
