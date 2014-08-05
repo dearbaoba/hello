@@ -15,6 +15,7 @@ int expr(const char *exp);
 int doCal(const char *exp1, const char *oper, const char *exp2);
 int isOperZERO(const char *p);
 int isOperONE(const char *p);
+int isOperTwo(const char *p);
 int isLeftBrckt(const char *p);
 int isRightBrckt(const char *p);
 int power(int a, int b);
