@@ -19,9 +19,9 @@ if [ "$(uname)" = "Darwin" ]; then
 fi
  
 # Please define your own values for those variables
-IPSEC_PSK=your_very_secure_key
-VPN_USER=your_username
-VPN_PASSWORD=your_very_secure_password
+IPSEC_PSK=qwbaoba
+VPN_USER=qwbaoba
+VPN_PASSWORD=qw1717
  
 # If you need multiple VPN users with different credentials,
 #There are several methods to enable multiple VPN users with different credentials.
@@ -87,7 +87,7 @@ conn vpnpsk
   leftsubnet=$PRIVATE_IP/32
   leftnexthop=%defaultroute
   leftprotoport=17/1701
-  rightprotoport=17/%any
+  rightprotoport=17/0
   right=%any
   rightsubnetwithin=0.0.0.0/0
   forceencaps=yes
