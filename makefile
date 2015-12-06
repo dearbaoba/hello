@@ -1,1 +1,1 @@
-gcc test.c
+gcc test1.c
