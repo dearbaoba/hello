@@ -42,4 +42,6 @@ main()
     }
 
     printf("maxSum:%d  form %d to %d\n",maxSum,minP,maxP);
+    
+    return 0;
 }
