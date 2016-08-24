@@ -35,7 +35,7 @@ def get_move(legal_moves):
     paras = {"begin": time.time(), "num": 0, "time": 0}
     rule = Rule()
     for move, player in move_map:
-        result, legal_moves = rule.move(move, player)
+        _, legal_moves = rule.move(move, player)
     while True:
         paras["num"] += 1
         winner, trace = random_search(rule, legal_moves)
@@ -47,7 +47,7 @@ def get_move(legal_moves):
         if paras["time"] > 1:
             break
     final_move = get_max_move(search_tree(rule.move_trace), legal_moves)
-    print "== calculate %d paths using %f seconds" % (paras["num"], paras["time"])
+    print "== calculate %d paths using %f seconds ==" % (paras["num"], paras["time"])
     return list(final_move), legal_moves
 
 
@@ -62,7 +62,7 @@ def get_max_move(node, legal_moves):
                 final["total"] = cal["total"]
                 final["per"] = per
                 final["move"] = item
-    print "== probability is %d\% (%d/%d)" % (final["per"], final["win"], final["total"])
+    print "== probability is %d\% (%d/%d) ==" % (final["per"], final["win"], final["total"])
     return final["move"]
 
 
@@ -88,17 +88,15 @@ def inc_search_tree(trace, is_win, index=0, tree=move_tree):
 def random_search(rule, legal_moves):
     _rule = copy.deepcopy(rule)
     moves = legal_moves
+    players = ["I", "AI"]
+    curr = 0
     while True:
-        is_win, moves = _rule.move(random_move(moves), "I")
+        is_win, moves = _rule.move(random_move(moves), players[curr])
         if is_win:
-            return "I", _rule.move_trace
+            return players[curr], _rule.move_trace
         elif len(moves) == 0:
             return "None", _rule.move_trace
-        is_win, moves = _rule.move(random_move(moves), "AI")
-        if is_win:
-            return "AI", _rule.move_trace
-        elif len(moves) == 0:
-            return "None", _rule.move_trace
+        curr = (curr + 1) % 2
 
 
 def random_move(legal_moves):
@@ -141,8 +139,10 @@ class Point(object):
         return True
 
     def __is_winner(self, r, c, player):
-        if self.__is_r(r, c, player) or self.__is_c(r, c, player) \
-                or self.__is_rc(r, c, player) or self.__is_cr(r, c, player):
+        if self.__is_r(r, c, player) \
+                or self.__is_c(r, c, player) \
+                or self.__is_rc(r, c, player) \
+                or self.__is_cr(r, c, player):
             self.winner = player
         return self.winner
 
