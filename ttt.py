@@ -11,7 +11,7 @@ move_tree = {}
 
 def send(data):
     github_url = "http://10.9.88.20:8080/alphattt.yaws"
-    cookies = {"SID": "nonode@nohost-144492940770597568603093346961567853040"}
+    cookies = {"SID": "nonode@nohost-288866164725755771148025299283002019618"}
     data = json.dumps(data)
     r = requests.post(github_url, data, cookies=cookies)
     # print r.json()
@@ -52,7 +52,7 @@ def get_move(legal_moves):
     if len(rule.move_trace) > 0:
         node = search_tree(rule.move_trace)
     final_move, cal, win, total = get_max_move(node, legal_moves)
-    return [final_move[0], final_move[1], final_move[2], final_move[3]], cal, win, total, num, now
+    return [final_move[0], final_move[1], final_move[2], final_move[3]], cal, win, total, num, now, legal_moves
 
 
 def get_max_move(node, legal_moves):
@@ -137,8 +137,15 @@ class Point(object):
                 return False
         return True
 
+    def __is_cr(self, r, c, player):
+        for i in range(3):
+            if self.moves[rc2n((r + i) % 3, (c - i) % 3)] != player:
+                return False
+        return True
+
     def __is_winner(self, r, c, player):
-        if self.__is_r(r, c, player) or self.__is_c(r, c, player) or self.__is_rc(r, c, player):
+        if self.__is_r(r, c, player) or self.__is_c(r, c, player) \
+                or self.__is_rc(r, c, player) or self.__is_cr(r, c, player):
             self.winner = player
         return self.winner
 
@@ -186,6 +193,7 @@ def main():
         steps = 0
         while True:
             legal_moves, move = check()
+            legal_moves = [(m["R"], m["C"], m["r"], m["c"]) for m in legal_moves]
             steps += 1
             if len(move) == 0 and len(legal_moves) == 0:
                 time.sleep(1)
@@ -193,13 +201,14 @@ def main():
                 steps = 0
                 print "AI move:"
                 print [move["R"], move["C"], move["r"], move["c"]]
+                print "within:", legal_moves
                 move_map.append(((move["R"], move["C"], move["r"], move["c"]), "AI"))
-                time.sleep(10)
+                # time.sleep(2)
             if len(legal_moves) > 0:
-                legal_moves = [(m["R"], m["C"], m["r"], m["c"]) for m in legal_moves]
-                i_move, per, win, total, num, now = get_move(legal_moves)
+                i_move, per, win, total, num, now, legal_moves = get_move(legal_moves)
                 print "I move:"
                 print i_move, per, (win, total), num, now
+                print "within:", legal_moves
                 move_map.append(((i_move[0], i_move[1], i_move[2], i_move[3]), "I"))
                 do_move(i_move)
             if steps > 5:
@@ -207,12 +216,11 @@ def main():
         print "over."
     rule = Rule()
     result = False
-    legal_moves = []
     player = "None"
     final_move = None
     for final_move, player in move_map:
-        result, legal_moves = rule.move(final_move, player)
-    print result, player, final_move, legal_moves
+        result, _ = rule.move(final_move, player)
+    print result, player, final_move
     # f = file("move_tree.pkl", "w")
     # pickle.dump(move_tree, f)
     # f.close()
