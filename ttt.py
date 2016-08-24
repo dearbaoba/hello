@@ -32,27 +32,23 @@ def check():
 
 
 def get_move(legal_moves):
-    begin = time.time()
-    num = 0
+    paras = {"begin": time.time(), "num": 0, "time": 0}
     rule = Rule()
-    now = 0
     for move, player in move_map:
         result, legal_moves = rule.move(move, player)
     while True:
-        num += 1
+        paras["num"] += 1
         winner, trace = random_search(rule, legal_moves)
         if winner == "I":
             inc_search_tree(trace, 1)
         else:
             inc_search_tree(trace, 0)
-        now = time.time() - begin
-        if now > 1:
+        paras["time"] = time.time() - paras["begin"]
+        if paras["time"] > 1:
             break
-    node = move_tree
-    if len(rule.move_trace) > 0:
-        node = search_tree(rule.move_trace)
-    final_move, cal, win, total = get_max_move(node, legal_moves)
-    return [final_move[0], final_move[1], final_move[2], final_move[3]], cal, win, total, num, now, legal_moves
+    final_move = get_max_move(search_tree(rule.move_trace), legal_moves)
+    print "== calculate %d paths using %f seconds" % (paras["num"], paras["time"])
+    return list(final_move), legal_moves
 
 
 def get_max_move(node, legal_moves):
@@ -66,10 +62,13 @@ def get_max_move(node, legal_moves):
                 final["total"] = cal["total"]
                 final["per"] = per
                 final["move"] = item
-    return final["move"], final["per"], final["win"], final["total"]
+    print "== probability is %d\% (%d/%d)" % (final["per"], final["win"], final["total"])
+    return final["move"]
 
 
 def search_tree(trace, index=0, tree=move_tree):
+    if len(trace) == 0:
+        return tree
     if index < (len(trace) - 1) and tree is not None:
         return search_tree(trace, index + 1, tree[trace[index]]["tree"])
     return tree[trace[index]]["tree"]
@@ -103,9 +102,7 @@ def random_search(rule, legal_moves):
 
 
 def random_move(legal_moves):
-    n = int(random.uniform(0, len(legal_moves)))
-    if n > len(legal_moves):
-        n = len(legal_moves)
+    n = random.randint(0, len(legal_moves) - 1)
     return legal_moves[n]
 
 
@@ -201,29 +198,25 @@ def main():
                 steps = 0
                 print "AI move:"
                 print [move["R"], move["C"], move["r"], move["c"]]
-                print "within:", legal_moves
+                print "Give:", legal_moves
                 move_map.append(((move["R"], move["C"], move["r"], move["c"]), "AI"))
-                # time.sleep(2)
             if len(legal_moves) > 0:
-                i_move, per, win, total, num, now, legal_moves = get_move(legal_moves)
+                i_move, legal_moves = get_move(legal_moves)
                 print "I move:"
-                print i_move, per, (win, total), num, now
-                print "within:", legal_moves
-                move_map.append(((i_move[0], i_move[1], i_move[2], i_move[3]), "I"))
+                print i_move
+                print "With:", legal_moves
+                move_map.append((tuple(i_move), "I"))
                 do_move(i_move)
             if steps > 5:
                 break
         print "over."
     rule = Rule()
-    result = False
-    player = "None"
-    final_move = None
     for final_move, player in move_map:
-        result, _ = rule.move(final_move, player)
-    print result, player, final_move
-    # f = file("move_tree.pkl", "w")
-    # pickle.dump(move_tree, f)
-    # f.close()
+        if rule.move(final_move, player)[0]:
+            print "%s win!" % player
+        else:
+            print "draw"
+
 
 if __name__ == '__main__':
     # try:
@@ -233,4 +226,7 @@ if __name__ == '__main__':
     # except Exception, e:
     #     print e
     # while True:
-    main()
+        main()
+        # f = file("move_tree.pkl", "w")
+        # pickle.dump(move_tree, f)
+        # f.close()
