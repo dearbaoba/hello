@@ -13,7 +13,7 @@ cal_time = 1
 
 def send(data):
     github_url = "http://10.9.88.20:8080/alphattt.yaws"
-    cookies = {"SID": "nonode@nohost-32302372811942131573818954210653580022"}
+    cookies = {"SID": "nonode@nohost-187226023323913847344756625081268513699"}
     data = json.dumps(data)
     r = requests.post(github_url, data, cookies=cookies)
     # print r.json()
@@ -62,7 +62,7 @@ def get_max_move(node, legal_moves):
         if cal is not None:
             final["cal"].append(cal)
             per = cal["win"] * 100 / cal["total"]
-            if per > final["per"]:
+            if per >= final["per"]:
                 final["win"] = cal["win"]
                 final["total"] = cal["total"]
                 final["per"] = per
@@ -202,11 +202,9 @@ class Rule(object):
 
 def draw_final():
     rule = Rule()
-    moves = ["0" for i in range(9 * 9)]
+    moves = ["0"] * 81
     final = "draw", "None"
-    line = [["N" for i in range(9)], ["N" for i in range(9)], ["N" for i in range(9)],
-            ["N" for i in range(9)], ["N" for i in range(9)], ["N" for i in range(9)],
-            ["N" for i in range(9)], ["N" for i in range(9)], ["N" for i in range(9)]]
+    line = [["N"] * 9] * 9
     for move, player in move_map:
         moves[move[0] * 27 + move[1] * 9 + move[2] * 3 + move[3]] = player
         if rule.move(move, player)[0]:
@@ -217,10 +215,13 @@ def draw_final():
                 for c in range(3):
                     line[R * 3 + r][C * 3 + c] = moves[R * 27 + C * 9 + r * 3 + c]
     for i in range(9):
-        print "%s %s %s  %s %s %s  %s %s %s" % \
-            (line[i][0], line[i][1], line[i][2],
-                line[i][3], line[i][4], line[i][5],
-                line[i][6], line[i][7], line[i][8])
+        for j in range(9):
+            if j == 8:
+                print line[i][j] + " "
+            else:
+                print line[i][j] + " ",
+                if (j + 1) % 3 == 0:
+                    print " ",
         if (i + 1) % 3 == 0:
             print "---"
     return final
