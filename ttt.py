@@ -45,9 +45,11 @@ def get_move(legal_moves):
         paras["num"] += 1
         winner, trace = random_search(rule, legal_moves)
         if winner == "I":
-            inc_search_tree(trace, 1)
+            inc_search_tree(trace, 1, 1)
         elif winner == "A":
-            inc_search_tree(trace, 0)
+            inc_search_tree(trace, 0, 1)
+        else:
+            inc_search_tree(trace, 0, 0)
         paras["time"] = time.time() - paras["begin"]
         if paras["time"] > cal_time:
             break
@@ -85,17 +87,17 @@ def search_tree(trace, index=0, tree=move_tree):
     return tree[trace[index][0]]["tree"]
 
 
-def inc_search_tree(trace, is_win, index=0, tree=move_tree):
+def inc_search_tree(trace, is_win, not_draw, index=0, tree=move_tree):
     if index < len(trace) and tree is not None:
         node = tree.get(trace[index][0], None)
         if node is None:
             global total_node
             total_node += 1
-            tree[trace[index][0]] = {"win": is_win, "total": 1, "tree": {}}
+            tree[trace[index][0]] = {"win": is_win, "total": not_draw, "tree": {}}
         else:
-            node["total"] += 1
+            node["total"] += not_draw
             node["win"] += is_win
-        inc_search_tree(trace, is_win, index + 1, tree[trace[index][0]]["tree"])
+        inc_search_tree(trace, is_win, not_draw, index + 1, tree[trace[index][0]]["tree"])
 
 
 def random_search(rule, legal_moves):
@@ -277,9 +279,7 @@ if __name__ == '__main__':
     #     print e
     wins = {"win": 0, "total": 0}
     while True:
-        move_tree = {}
         move_map = []
-        total_node = 0
         result, player = main()
         wins["total"] += 1
         if player == "I":
