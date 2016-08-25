@@ -202,9 +202,9 @@ class Rule(object):
 
 def draw_final():
     rule = Rule()
-    moves = ["0"] * 81
+    moves = ["0" for i in range(81)]
     final = "draw", "None"
-    line = [["N"] * 9] * 9
+    line = [["0" for i in range(9)] for j in range(9)]
     for move, player in move_map:
         moves[move[0] * 27 + move[1] * 9 + move[2] * 3 + move[3]] = player
         if rule.move(move, player)[0]:
@@ -262,12 +262,12 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        f = file("move_tree.pkl", "r")
-        move_tree = pickle.load(f)
-        f.close()
-    except Exception, e:
-        print e
+    # try:
+    #     f = file("move_tree.pkl", "r")
+    #     move_tree = pickle.load(f)
+    #     f.close()
+    # except Exception, e:
+    #     print e
     wins = {"win": 0, "total": 0}
     while True:
         move_map = []
@@ -277,6 +277,6 @@ if __name__ == '__main__':
             wins["win"] += 1
         print result
         print "total: %d/%d" % (wins["win"], wins["total"])
-        f = file("move_tree.pkl", "w")
-        pickle.dump(move_tree, f)
-        f.close()
+        # f = file("move_tree.pkl", "w")
+        # pickle.dump(move_tree, f)
+        # f.close()
