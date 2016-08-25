@@ -93,7 +93,7 @@ def inc_search_tree(trace, is_win, not_draw, index=0, tree=move_tree):
         if node is None:
             global total_node
             total_node += 1
-            tree[trace[index][0]] = {"win": is_win, "total": not_draw, "tree": {}}
+            tree[trace[index][0]] = {"win": is_win, "total": 1, "tree": {}}
         else:
             node["total"] += not_draw
             node["win"] += is_win
