@@ -9,11 +9,12 @@ import cPickle as pickle
 move_map = []
 move_tree = {}
 cal_time = 1
+total_node = 0
 
 
 def send(data):
     github_url = "http://10.9.88.20:8080/alphattt.yaws"
-    cookies = {"SID": "nonode@nohost-187226023323913847344756625081268513699"}
+    cookies = {"SID": "nonode@nohost-180628681594120732172449048974498269359"}
     data = json.dumps(data)
     r = requests.post(github_url, data, cookies=cookies)
     # print r.json()
@@ -88,6 +89,8 @@ def inc_search_tree(trace, is_win, index=0, tree=move_tree):
     if index < len(trace) and tree is not None:
         node = tree.get(trace[index][0], None)
         if node is None:
+            global total_node
+            total_node += 1
             tree[trace[index][0]] = {"win": is_win, "total": 1, "tree": {}}
         else:
             node["total"] += 1
@@ -232,6 +235,7 @@ def main():
         print "start"
         time.sleep(3)
         steps = 0
+        is_me = True
         while True:
             legal_moves, move = check()
             legal_moves = [(m["R"], m["C"], m["r"], m["c"]) for m in legal_moves]
@@ -239,6 +243,7 @@ def main():
             if len(move) == 0 and len(legal_moves) == 0:
                 time.sleep(1)
             if len(move) > 0:
+                is_me = False
                 steps = 0
                 print "AI move:"
                 print [move["R"], move["C"], move["r"], move["c"]]
@@ -246,7 +251,9 @@ def main():
                 move_map.append(((move["R"], move["C"], move["r"], move["c"]), "A"))
                 draw_final()
             if len(legal_moves) > 0:
-                i_move, legal_moves = get_move(legal_moves)
+                i_move = [1, 1, 1, 1]
+                if not is_me:
+                    i_move, legal_moves = get_move(legal_moves)
                 if i_move is None:
                     break
                 print "I move:"
@@ -270,13 +277,15 @@ if __name__ == '__main__':
     #     print e
     wins = {"win": 0, "total": 0}
     while True:
+        move_tree = {}
         move_map = []
+        total_node = 0
         result, player = main()
         wins["total"] += 1
         if player == "I":
             wins["win"] += 1
         print result
-        print "total: %d/%d" % (wins["win"], wins["total"])
+        print "total: %d/%d total_node: %d" % (wins["win"], wins["total"], total_node)
         # f = file("move_tree.pkl", "w")
         # pickle.dump(move_tree, f)
         # f.close()
