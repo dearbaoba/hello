@@ -12,6 +12,7 @@ PLAYER_NO = "N"
 move_tree = {}
 cal_time = 1
 cookie = {}
+DEBUG = True
 
 
 def send(data):
@@ -28,15 +29,22 @@ def send(data):
 
 
 def start():
+    if DEBUG:
+        return True
     return send({"id": "httpReq", "method": "start_game", "params": []})["result"] == "ok"
 
 
 def do_move(move):
+    if DEBUG:
+        return True
     return send({"id": "httpReq", "method": "set_move",
                  "params": list(n2RCrc(move[0]))})["result"] == "ok"
 
 
-def check():
+def check(rule=None):
+    if DEBUG:
+        move = pick_move(rule.get_legal_moves(), PLAYER_AI)
+        return move, [0]
     result = send({"id": "httpReq", "method": "get_state", "params": []})
     legal_moves = result.get("result", {}).get("legal_moves", [])
     move = result.get("result", {}).get("move", [])
@@ -64,13 +72,13 @@ def inc_tree((trace, winner)):
     inc = {"win": 0, "total": 1}
     if winner == PLAYER_ME:
         inc["win"] = 1
-    moves = [None for i in range(81)]
+    moves = [0 for i in range(81)]
     for (n, player) in trace:
-        moves[n] = player
-        node = move_tree.get((moves, (n, player)), None)
+        moves[n] = 1
+        node = move_tree.get((tuple(moves), n), None)
         if node is None:
-            move_tree[(moves, (n, player))] = {"win": 0, "total": 0}
-            node = move_tree[(moves, (n, player))]
+            move_tree[(tuple(moves), n)] = {"win": 0, "total": 0}
+            node = move_tree[(tuple(moves), n)]
         node["win"] += inc["win"]
         node["total"] += inc["total"]
 
@@ -79,10 +87,10 @@ def search_tree(moves, legal_moves):
     final = {"per": 0, "win": 0, "total": 0, "move": None}
     for n in legal_moves:
         _moves = copy.copy(moves)
-        _moves[n] = PLAYER_ME
-        node = move_tree[(_moves, (n, PLAYER_ME))]
+        _moves[n] = 1
+        node = move_tree.get((tuple(_moves), n), None)
         wins = node["win"] * 100 / node["total"]
-        if final["per"] >= wins:
+        if wins >= final["per"]:
             final["per"] = wins
             final["win"] = node["win"]
             final["total"] = node["total"]
@@ -149,7 +157,7 @@ class Point(object):
 
     def get_legal_moves(self):
         legal_moves = []
-        if self.winner is None:
+        if self.winner() is None:
             for i, item in enumerate(self.moves):
                 if item is None:
                     legal_moves.append(i)
@@ -163,7 +171,7 @@ class Point(object):
 class Rule(object):
 
     def __init__(self):
-        self.moves = [None for i in range(81)]
+        self.moves = [0 for i in range(81)]
         self.move_trace = []
         self.curr_move = None
         self.big_point = Point()
@@ -184,21 +192,23 @@ class Rule(object):
         return self.big_point.winner()
 
     def get_legal_moves(self):
-        (N, n) = (int(self.curr_move[0] / 9), self.curr_move[0] % 9)
-        moves = [i + N * 9 for i in self.small_point[n].get_legal_moves()]
+        if self.curr_move is None:
+            return [0]
+        n = self.curr_move[0] % 9
+        moves = [i + n * 9 for i in self.small_point[n].get_legal_moves()]
         if moves == []:
-            for item in self.small_point:
-                moves.extend([i + N * 9 for i in item.get_legal_moves()])
+            for index, item in enumerate(self.small_point):
+                moves.extend([i + index * 9 for i in item.get_legal_moves()])
         return moves
 
     def move(self, (n, player)):
         self.curr_move = (n, player)
         self.move_trace.append(self.curr_move)
-        self.moves[n] = player
+        self.moves[n] = 1
         self.__update_points()
 
     def print_game(self):
-        print self.curr_move[1] + "move:"
+        print self.curr_move[1] + " move:"
         print n2RCrc(self.curr_move[0])
 
 
@@ -208,7 +218,7 @@ def main():
         time.sleep(3)
         rule = Rule()
         while True:
-            move, legal_moves = check()
+            move, legal_moves = check(rule)
             if len(move) == 0 and len(legal_moves) == 0:
                 time.sleep(1)
                 continue
