@@ -211,6 +211,26 @@ class Rule(object):
         print self.curr_move[1] + " move:"
         print n2RCrc(self.curr_move[0])
 
+        moves = ["0" for i in range(81)]
+        line = [["0" for i in range(9)] for j in range(9)]
+        for (n, player) in self.move_trace:
+            moves[n] = player
+        for R in range(3):
+            for r in range(3):
+                for C in range(3):
+                    for c in range(3):
+                        line[R * 3 + r][C * 3 + c] = moves[R * 27 + C * 9 + r * 3 + c]
+        for i in range(9):
+            for j in range(9):
+                if j == 8:
+                    print line[i][j] + " "
+                else:
+                    print line[i][j] + " ",
+                    if (j + 1) % 3 == 0:
+                        print " ",
+            if (i + 1) % 3 == 0:
+                print "---"
+
 
 def main():
     if start():
