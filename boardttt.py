@@ -9,18 +9,20 @@ import math
 from pyboard import Board
 
 
-cookie = None
+cookie = {}
 DEBUG = True
 cal_time = 1
 
+
 def send(data):
     global cookie
+    # github_url = "http://10.8.39.80/alphattt.yaws"
     github_url = "http://10.9.88.20:8080/alphattt.yaws"
     # cookie = {"SID": "nonode@nohost-180628681594120732172449048974498269359"}
     data = json.dumps(data)
     r = requests.post(github_url, data, cookies=cookie)
-    if r.cookie.get("SID", None) is not None:
-        cookie["SID"] = r.cookie.get("SID", None)
+    if r.cookies.get("SID", None) is not None:
+        cookie["SID"] = r.cookies.get("SID", None)
         print cookie
     # print r.json()
     return r.json()
@@ -41,23 +43,27 @@ def do_move(move):
 
 def check(board=None):
     if DEBUG:
-        move = board.legal_moves[random.randint(0, len(board.legal_moves) - 1)]
+        move = random.choice(board.legal_moves)
         return move, [0]
     result = send({"id": "httpReq", "method": "get_state", "params": []})
     legal_moves = result.get("result", {}).get("legal_moves", [])
     move = result.get("result", {}).get("move", [])
     legal_moves = [dict2move(item) for item in legal_moves]
-    move = dict2move(move)
+    if len(move) > 0:
+        move = dict2move(move)
     return move, legal_moves
+
 
 def random_pick(moves):
     n = random.randint(0, len(moves) - 1)
     return moves[n]
 
-def move2list(move):# (s, n) -> []
+
+def move2list(move):  # (s, n) -> []
     N = math.log(move[0], 2)
     n = math.log(move[1], 2)
-    return [int(N / 3), N % 3, int(n / 3), n % 3]
+    return [int(N / 3), int(N % 3), int(n / 3), int(n % 3)]
+
 
 def dict2move(data):
     (R, C, r, c) = (data["R"], data["C"], data["r"], data["c"])
@@ -88,7 +94,7 @@ class TreeSearch(object):
         curr_player = Board.PLAYER_ME
         move_trace = []
         while True:
-            _board.move(self.__pick_move(_legal_moves, curr_player))
+            _board.move((random.choice(_legal_moves), curr_player))
             move_trace.append(_board.get_board())
             winner = _board.winner
             if winner is not None:
@@ -97,17 +103,15 @@ class TreeSearch(object):
             curr_player += 1
             curr_player = curr_player % 2
 
-    def __pick_move(self, legal_moves, player):
-        n = random.randint(0, len(legal_moves) - 1)
-        return (legal_moves[n], player)
-
     def __inc_tree(self, (move_trace, winner)):
         inc = {"win": 0, "total": 1}
         if winner == Board.PLAYER_ME:
             inc["win"] = 1
         for item in move_trace:
-            node = self.tree.get(item, None)
-            if node is None:
+            node = None
+            try:
+                node = self.tree[item]
+            except Exception:
                 self.tree[item] = {"win": 0, "total": 0}
                 node = self.tree[item]
             node["win"] += inc["win"]
@@ -127,7 +131,6 @@ class TreeSearch(object):
                 final["move"] = move
         print "== probability is %d. %d/%d ==" % (final["per"], final["win"], final["total"])
         return final["move"]
-
 
 
 def main(tree):
@@ -156,13 +159,19 @@ def main(tree):
                 return winner
 
 if __name__ == '__main__':
-    import cProfile
+    # import cProfile
 
     wins = {"win": 0, "total": 0, "draw": 0}
     players = ["I", "A"]
-    tree = TreeSearch()
-    cProfile.run("main(tree)")
-    while False:
+    num = 0
+    while True:
+        num += 1
+        if num > 30:
+            break
+        tree = TreeSearch()
+        # if DEBUG:
+        #     print cProfile.run("main(tree)")
+        #     break
         winner = main(tree)
         if winner == Board.PLAYER_ME:
             wins["win"] += 1
@@ -171,4 +180,5 @@ if __name__ == '__main__':
         else:
             wins["total"] += 1
         print "winner is " + players[winner]
-        print "total: %d/%d draw: %d nodes: %d" % (wins["win"], wins["total"], wins["draw"], len(tree.tree))
+        print "total: %d/%d draw: %d nodes: %d" % \
+            (wins["win"], wins["total"], wins["draw"], len(tree.tree))
