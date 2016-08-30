@@ -13,15 +13,15 @@ class Board(object):
     def __init__(self, copy_board=None):
         super(Board, self).__init__()
         self.board = {
-            1: [0, 0, 0, [i for i in Board.BOARDS]],
-            2: [0, 0, 0, [i for i in Board.BOARDS]],
-            4: [0, 0, 0, [i for i in Board.BOARDS]],
-            8: [0, 0, 0, [i for i in Board.BOARDS]],
-            16: [0, 0, 0, [i for i in Board.BOARDS]],
-            32: [0, 0, 0, [i for i in Board.BOARDS]],
-            64: [0, 0, 0, [i for i in Board.BOARDS]],
-            128: [0, 0, 0, [i for i in Board.BOARDS]],
-            256: [0, 0, 0, [i for i in Board.BOARDS]]
+            1: [0, 0, 0],
+            2: [0, 0, 0],
+            4: [0, 0, 0],
+            8: [0, 0, 0],
+            16: [0, 0, 0],
+            32: [0, 0, 0],
+            64: [0, 0, 0],
+            128: [0, 0, 0],
+            256: [0, 0, 0]
         }
         self.bboard = [0, 0, 0]
         self.curr_player = Board.PLAYER_NO
@@ -38,26 +38,31 @@ class Board(object):
     def __get_legal_moves(self, n):
         self.legal_moves = []
         if self.winner is None:
-            if self.board[n][3] != []:
-                self.legal_moves = [(n, i) for i in self.board[n][3]]
+            legals = Board.MAX_BOARD - self.board[n][2]
+            if legals > 0:
+                for i in Board.BOARDS:
+                    if (legals & i) == i:
+                        self.legal_moves.append((n, i))
             else:
                 for s, item in self.board.iteritems():
-                    if item[3] != []:
-                        self.legal_moves.extend([(s, i) for i in item[3]])
+                    legals = Board.MAX_BOARD - item[2]
+                    if legals > 0:
+                        for i in Board.BOARDS:
+                            if (legals & i) == i:
+                                self.legal_moves.append((s, i))
         return self.legal_moves
 
     def move(self, ((s, n), player)):
         # move
         self.board[s][player] += n
         self.board[s][2] += n
-        self.board[s][3].remove(n)
         self.curr_player = player
         self.move_trace.append(((s, n), player))
         # calculate
         if self.__is_win(self.board[s][player]):
-            self.board[s][3] = []
             self.bboard[player] += s
             self.bboard[2] += s
+            self.board[s][2] = Board.MAX_BOARD
             if self.__is_win(self.bboard[player]):
                 self.winner = player
         elif self.board[s][2] == Board.MAX_BOARD:
