@@ -159,7 +159,7 @@ def main(tree):
                 return winner
 
 if __name__ == '__main__':
-    # import cProfile
+    import cProfile
 
     wins = {"win": 0, "total": 0, "draw": 0}
     players = ["I", "A"]
@@ -169,9 +169,9 @@ if __name__ == '__main__':
         if num > 30:
             break
         tree = TreeSearch()
-        # if DEBUG:
-        #     print cProfile.run("main(tree)")
-        #     break
+        if DEBUG:
+            print cProfile.run("main(tree)")
+            break
         winner = main(tree)
         if winner == Board.PLAYER_ME:
             wins["win"] += 1
