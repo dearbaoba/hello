@@ -1,43 +1,41 @@
-ANT=8;
+ANT=4;
 RB=1;
 CELL=2;
 USER=CELL;
-NOISE=0.001;
-H=rand(RB*CELL,ANT,USER)+rand(RB*CELL,ANT,USER)*i;
-W=zeros(USER,ANT);
-SINR=zeros(1,USER);
-COFF=ones(1,RB*USER);
+NOISE=0.1
+H=rand(USER,ANT,CELL)+rand(USER,ANT,CELL)*i
+W=zeros(CELL,ANT);
+SINR=zeros(1,CELL);
+COFF=ones(1,CELL);
+CAB=zeros(1,CELL);
 for x=1:5
     %for W
-    for n=1:USER
+    for n=1:CELL
         Hi=H(:,:,n);
-        Hii=Hi((n-1)*RB+1:n*RB,:);
-        Hij=Hi;
-    %     Hij(Hij==0)=[];
-        c=Hii'*Hii/(COFF(:,(n-1)*RB+1)*NOISE*ones(ANT)+(Hij'.*repmat(COFF(1,:),ANT,1))*Hij)
+        Hi(n,:)=[];
+        COFFi=COFF;
+        COFFi(:,n)=[];
+        c=H(n,:,n)'*H(n,:,n)/(COFF(:,n)*NOISE^2*ones(ANT)+(Hi'.*repmat(COFFi(1,:),ANT,1))*Hi);
+        %c=inv(COFF(:,n)*NOISE*ones(ANT)+(Hi'.*repmat(COFFi(1,:),ANT,1))*Hi)*Hii'*Hii;
         [V,D]=eig(c);
-        t=abs(D(1,1));
-        tidx=1;
-        for l=1:ANT
-            if abs(D(l,l))>t
-                t=abs(D(l,l));
-                tidx=l;
-            end
-        end
-        W(n,:)=V(tidx,:);
+        [Dmax Didx]=max(diag(D));
+        W(n,:)=V(Didx,:);
     end
+    W
     %for SINR
-    for n=1:USER
-        Hi=H(:,:,n);
-        Hii=Hi((n-1)*RB+1:n*RB,:);
-        Hij=Hi;
-        Hij(Hij==0)=[];
-        SINR(:,n)=abs(ones(1,RB)*(Hii*W(n,:).'))/(NOISE+abs(ones(1,RB*CELL)*(Hij*W(n,:).')));
+    for n=1:CELL
+        SINR(:,n)=abs(H(n,:,n)*W(n,:).')/(NOISE^2+sum(diag(abs(H(:,:,n)*W.')))-abs(H(n,:,n)*W(n,:).'));
     end
+    SINR;
     %for COFF
-    for n=1:USER
-        COFF(:,(n-1)*RB+1:n*RB)=repmat([SINR(1,n)/sum(SINR(1,:))],1,RB);
+    for n=1:CELL
+        COFF(:,n)=SINR(1,n)/(sum(SINR(1,:))-SINR(1,n));
     end
-    sum(SINR)
+    total_SINR=sum(SINR)
+    %for CAB
+    for n=1:CELL
+        CAB(1,n)=log2(1+abs(H(n,:,n)*W(n,:).')^2/(NOISE^2+abs(diag(H(:,:,n)*W.'))'*abs(diag(H(:,:,n)*W.'))-abs(H(n,:,n)*W(n,:).')^2));
+    end
+    total_cab=sum(CAB(1,:))
 end
 'over'
